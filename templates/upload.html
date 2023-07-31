@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upscaler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+        #file-input {
+            display: none;
+        }
+        #upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #upload-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #upload-btn:hover {
+            background-color: #0056b3;
+        }
+        #image-preview {
+            max-width: 500px;
+            margin: 20px auto;
+            border: 2px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        #preview-img {
+            max-width: 100%;
+        }
+        #upscale-btn {
+            display: none;
+            margin-top: 10px;
+            background-color: #4caf50;
+            color: #fff;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #upscale-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Upscaler</h1>
+    <div id="upload-container">
+        <label for="file-input" id="upload-btn">Select an Image</label>
+        <input type="file" id="file-input" accept=".jpg, .jpeg, .png">
+        <br>
+        <div id="image-preview">
+            <img id="preview-img" src="#" alt="Image Preview">
+        </div>
+        <button id="upscale-btn" onclick="uploadImage()">Upscale</button>
+    </div>
+    <script>
+        // Function to update image preview when a new image is selected
+        function updateImagePreview(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById("preview-img").setAttribute("src", e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+                document.getElementById("upscale-btn").style.display = "block";
+            }
+        }
+
+        // Function to perform the image upload and receive the result
+        function uploadImage() {
+            var fileInput = document.getElementById("file-input");
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            // Send the image file to the server using fetch API
+            fetch("/", {
+                method: "POST",
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    response.blob().then(blob => {
+                        // Create a temporary download link and trigger download
+                        var url = URL.createObjectURL(blob);
+                        var a = document.createElement("a");
+                        a.href = url;
+                        a.download = file.name.split(".")[0] + "_upscaled.png";
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    });
+                }
+            }).catch(error => {
+                console.error("Error uploading image: ", error);
+            });
+        }
+
+        // Add event listener to update image preview when a new file is selected
+        document.getElementById("file-input").addEventListener("change", function () {
+            updateImagePreview(this);
+        });
+    </script>
+</body>
+</html>
